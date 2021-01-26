@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 filecoin = { git="https://github.com/filecoin-project/powersoftau",package="powersoftau"}
 zcash = { git="https://github.com/ebfull/powersoftau",package="powersoftau"}
+#zcash = { path="../zcashptau", package="powersoftau"}
