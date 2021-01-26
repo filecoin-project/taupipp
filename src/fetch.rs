@@ -1,4 +1,4 @@
-//use filecoin::accumulator::Accumulator as facc;
+use crate::powers::{TauParams, TauPowers};
 use groupy::EncodedPoint;
 use isahc::prelude::*;
 use paired::{bls12_381::Bls12, Engine, PairingCurveAffine};
@@ -6,31 +6,27 @@ use rayon::prelude::*;
 use std::fmt;
 use std::fs::OpenOptions;
 use std::io::{self, BufReader, Error, Read};
-use zcash::{Accumulator as zacc, CheckForCorrectness, UseCompression};
-/// TauParams contains the size of the vector of the tau^i vector in g1 and g2
-/// More tau powers are needed in G1 because the Groth16 H query
-/// includes terms of the form tau^i * (tau^m - 1) = tau^(i+m) - tau^i
-/// where the largest i = m - 2, requiring the computation of tau^(2m - 2)
-/// and thus giving us a vector length of 2^22 - 1.
-pub struct TauParams {
-    pub g1_length: usize,
-    pub g2_length: usize,
+
+/// An URI can designate multiple ways to fetch a power of tau ceremony
+#[derive(Clone, Debug)]
+pub enum URI {
+    File(String),
+    HTTP(String),
 }
 
-impl TauParams {
-    pub fn new(tau_length: usize) -> TauParams {
-        TauParams {
-            g2_length: tau_length,
-            g1_length: (tau_length << 1) - 1,
-        }
+/// This functions fetches the power of tau transcript using the corresponding
+/// method of the URI and returns the tau powers.
+/// Note it fetches and reads only the first tau^i in G1 and G2 groups of the
+/// full transcript as only this part is needed for IPP.
+pub fn read_powers_from<E: Engine>(
+    params: TauParams,
+    uri: URI,
+) -> Result<TauPowers<E>, DeserializationError> {
+    match uri {
+        URI::File(a) => read_powers_from_file(params, &a),
+        URI::HTTP(a) => read_powers_from_url(params, &a),
+        _ => panic!("don't know how to fetch these params"),
     }
-}
-
-/// TauPowers contains the actual values of the tau^i in G1 and G2 in affine
-/// form.
-pub struct TauPowers<E: Engine> {
-    pub tau_g1: Vec<E::G1Affine>,
-    pub tau_g2: Vec<E::G2Affine>,
 }
 
 /// read_vec reads up to size * point_length bytes from the reader and only
@@ -78,6 +74,7 @@ fn skip_hash<R: Read>(r: &mut R) {
         .expect("unable to read BLAKE2b hash of previous contribution");
 }
 
+/// read the powers from the given file using the given parameters.
 fn read_powers_from_file<E: Engine>(
     params: TauParams,
     fname: &str,
@@ -89,6 +86,9 @@ fn read_powers_from_file<E: Engine>(
     read_powers(params, &mut reader)
 }
 
+/// read the powers from the given URL using the given parameters. Currently, it
+/// fetches first all then process the points. TODO fetch and process in
+/// parallel.
 fn read_powers_from_url<E: Engine>(
     params: TauParams,
     url: &str,
@@ -98,6 +98,8 @@ fn read_powers_from_url<E: Engine>(
     read_powers(params, &mut body)
 }
 
+/// read_powers reads only the first tau^i in G1 and G2 groups of the full
+/// transcript as only this part is needed for IPP.
 fn read_powers<E: Engine, R: Read>(
     params: TauParams,
     reader: &mut R,
@@ -111,19 +113,6 @@ fn read_powers<E: Engine, R: Read>(
     })
 }
 
-fn main() {
-    println!("reading zcash taus!");
-    let zcash_params = TauParams::new(1 << 21);
-    let zcash_file = "zcash_poweroftau.md";
-    let zcash_acc = read_powers_from_file::<Bls12>(zcash_params, zcash_file);
-    // last contribution for Filecoin's power of tau:
-    // https://github.com/arielgabizon/perpetualpowersoftau/tree/master/0018_GolemFactory_response
-    println!("reading filecoin taus!");
-    let zcash_params = TauParams::new(1 << 21);
-    let fil_params = TauParams::new(1 << 27);
-    let filecoin_url = "https://trusted-setup.s3.eu-central-1.amazonaws.com/challenge_18";
-    let filecoin_acc = read_powers_from_url::<Bls12>(fil_params, filecoin_url);
-}
 /// Errors that might occur during deserialization.
 #[derive(Debug)]
 pub enum DeserializationError {
