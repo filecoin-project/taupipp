@@ -10,3 +10,7 @@ edition = "2018"
 filecoin = { git="https://github.com/filecoin-project/powersoftau",package="powersoftau"}
 zcash = { git="https://github.com/ebfull/powersoftau",package="powersoftau"}
 #zcash = { path="../zcashptau", package="powersoftau"}
+paired = { version = "0.21.0"}
+groupy = "0.3.0"
+rayon = "1.3.0"
+isahc = "1.0.3"
