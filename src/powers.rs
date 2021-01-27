@@ -1,5 +1,5 @@
-use bellman::groth16::aggregate::srs::GenericSRS;
-use paired::{Engine, PairingCurveAffine};
+use bellman::groth16::aggregate::GenericSRS;
+use paired::Engine;
 
 /// TauParams contains the size of the vector of the tau^i vector in g1 and g2
 pub struct TauParams {
@@ -43,10 +43,10 @@ pub fn create_ipp_srs<E: Engine>(p1: &TauPowers<E>, p2: &TauPowers<E>, n: usize)
     if !b1 || !b2 {
         panic!("the two transcript don't use the same bases");
     }
-    let g_alpha_powers = p1.tau_g1.iter().take(tn).collect::<Vec<_>>();
-    let g_beta_powers = p2.tau_g1.iter().take(tn).collect::<Vec<_>>();
-    let h_alpha_powers = p1.tau_g2.iter().take(tn).collect::<Vec<_>>();
-    let h_beta_powers = p2.tau_g2.iter().take(tn).collect::<Vec<_>>();
+    let g_alpha_powers = p1.tau_g1.iter().take(tn).cloned().collect::<Vec<_>>();
+    let g_beta_powers = p2.tau_g1.iter().take(tn).cloned().collect::<Vec<_>>();
+    let h_alpha_powers = p1.tau_g2.iter().take(tn).cloned().collect::<Vec<_>>();
+    let h_beta_powers = p2.tau_g2.iter().take(tn).cloned().collect::<Vec<_>>();
     GenericSRS::<E> {
         g_alpha_powers,
         g_beta_powers,

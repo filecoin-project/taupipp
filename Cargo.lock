@@ -21,7 +21,7 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 [[package]]
 name = "bellperson"
 version = "0.12.3"
-source = "git+https://github.com/filecoin-project/bellperson?branch=feat-ipp2#d1c5fec1a6419b27756a30162a76a0f135801db1"
+source = "git+https://github.com/filecoin-project/bellperson?branch=feat-ipp2#eab4eba92c5db02f5616b88180c7b78303da1532"
 dependencies = [
  "bincode",
  "bit-vec",
@@ -29,14 +29,14 @@ dependencies = [
  "byteorder",
  "crossbeam-channel",
  "digest",
- "fff 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "groupy 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fff",
+ "groupy",
  "itertools",
  "lazy_static",
  "log",
  "memmap",
  "num_cpus",
- "paired 0.21.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "paired",
  "rand 0.7.3",
  "rand_core 0.5.1",
  "rayon",
@@ -265,23 +265,11 @@ dependencies = [
 [[package]]
 name = "fff"
 version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2544d325b4870bd803d371a7df3c6845e84dcfcb6ebe7ffcae0eac6d5d676133"
-dependencies = [
- "byteorder",
- "cc",
- "fff_derive",
- "lazy_static",
- "rand_core 0.5.1",
-]
-
-[[package]]
-name = "fff"
-version = "0.2.3"
 source = "git+https://github.com/filecoin-project/ff?branch=ser-de#231b29f9df9b13f510566e1d4b69e6b0e1bfc34e"
 dependencies = [
  "byteorder",
  "cc",
+ "fff_derive",
  "lazy_static",
  "rand_core 0.5.1",
  "serde",
@@ -290,8 +278,7 @@ dependencies = [
 [[package]]
 name = "fff_derive"
 version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "844b389fbe323d3b35ed1b3b119e75b11dca536d291d31342acea5b4c8984558"
+source = "git+https://github.com/filecoin-project/ff?branch=ser-de#231b29f9df9b13f510566e1d4b69e6b0e1bfc34e"
 dependencies = [
  "num-bigint",
  "num-integer",
@@ -406,21 +393,9 @@ dependencies = [
 [[package]]
 name = "groupy"
 version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d38f1bec17d75a7c30b754cd74db6e7cb5927529021ced14fbd622411c04d8b"
-dependencies = [
- "fff 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "rand 0.7.3",
- "rand_xorshift",
- "thiserror",
-]
-
-[[package]]
-name = "groupy"
-version = "0.3.1"
 source = "git+https://github.com/filecoin-project/group?branch=ser-de#57d0d799e2281f562499454c80c7dae6a8e8d379"
 dependencies = [
- "fff 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fff",
  "rand 0.7.3",
  "rand_xorshift",
  "serde",
@@ -689,28 +664,13 @@ dependencies = [
 [[package]]
 name = "paired"
 version = "0.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42fc2daf8d5a8e22a9833f798e72c0d6862b5f0288f0a2d289b37cd03fa5e283"
-dependencies = [
- "blake2b_simd",
- "byteorder",
- "digest",
- "fff 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "groupy 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "hkdf",
- "rand_core 0.5.1",
-]
-
-[[package]]
-name = "paired"
-version = "0.21.0"
 source = "git+https://github.com/filecoin-project/paired?branch=ser-de#a31e08071305a59d1aa2a7273d4a2ab44508f6df"
 dependencies = [
  "blake2b_simd",
  "byteorder",
  "digest",
- "fff 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "groupy 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fff",
+ "groupy",
  "hkdf",
  "rand_core 0.5.1",
  "serde",
@@ -1051,10 +1011,9 @@ name = "taupipp"
 version = "0.1.0"
 dependencies = [
  "bellperson",
- "fff 0.2.3 (git+https://github.com/filecoin-project/ff?branch=ser-de)",
- "groupy 0.3.1 (git+https://github.com/filecoin-project/group?branch=ser-de)",
+ "groupy",
  "isahc",
- "paired 0.21.0 (git+https://github.com/filecoin-project/paired?branch=ser-de)",
+ "paired",
  "rayon",
 ]
 

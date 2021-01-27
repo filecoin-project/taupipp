@@ -1,11 +1,10 @@
 use crate::powers::{TauParams, TauPowers};
 use groupy::EncodedPoint;
-use isahc::prelude::*;
-use paired::{bls12_381::Bls12, Engine, PairingCurveAffine};
+use paired::{Engine, PairingCurveAffine};
 use rayon::prelude::*;
 use std::fmt;
 use std::fs::OpenOptions;
-use std::io::{self, BufReader, Error, Read};
+use std::io::{self, Read};
 
 /// An URI can designate multiple ways to fetch a power of tau ceremony
 #[derive(Clone, Debug)]
@@ -27,7 +26,6 @@ pub fn read_powers_from<E: Engine>(
     match uri {
         URI::File(a) => read_powers_from_file(params, &a),
         URI::HTTP(a) => read_powers_from_url(params, &a),
-        _ => panic!("don't know how to fetch these params"),
     }
 }
 
@@ -47,8 +45,8 @@ fn read_vec<R: Read, C: PairingCurveAffine>(
     }
     // read the rest that we wish to skip
     let mut empty = C::Compressed::empty();
-    for i in 0..(size - take) {
-        reader.read_exact(empty.as_mut());
+    for _ in 0..(size - take) {
+        reader.read_exact(empty.as_mut())?;
     }
     let res_affine = res
         .into_par_iter()
