@@ -1,11 +1,7 @@
-use bellman::groth16::aggregate::srs::{VerifierSRS, SRS};
+use bellman::groth16::aggregate::srs::GenericSRS;
 use paired::{Engine, PairingCurveAffine};
 
 /// TauParams contains the size of the vector of the tau^i vector in g1 and g2
-/// More tau powers are needed in G1 because the Groth16 H query
-/// includes terms of the form tau^i * (tau^m - 1) = tau^(i+m) - tau^i
-/// where the largest i = m - 2, requiring the computation of tau^(2m - 2)
-/// and thus giving us a vector length of 2^22 - 1.
 pub struct TauParams {
     pub g1_length: usize,
     pub g2_length: usize,
@@ -17,6 +13,10 @@ impl TauParams {
     pub fn new(tau_length: usize) -> TauParams {
         TauParams {
             g2_length: tau_length,
+            // More tau powers are needed in G1 because the Groth16 H query
+            // includes terms of the form tau^i * (tau^m - 1) = tau^(i+m) - tau^i
+            // where the largest i = m - 2, requiring the computation of tau^(2m - 2)
+            // and thus giving us a vector length of 2^22 - 1.
             g1_length: (tau_length << 1) - 1,
         }
     }
@@ -29,38 +29,28 @@ pub struct TauPowers<E: Engine> {
     pub tau_g2: Vec<E::G2Affine>,
 }
 
-pub fn create_ipp_srs<E: Engine>(
-    n: usize,
-    p1: &TauPowers<E>,
-    p2: &TauPowers<E>,
-) -> (SRS<E>, VerifierSRS<E>) {
+/// this function returns the generic srs required to aggregate Groth16 proofs
+/// together. The generic srs will be able to aggregate up to $n$ proofs. $n$
+/// must be smaller than half of the size of both CRS otherwise it panics. Both
+/// CRS must use the same generators in G1 and G2 otherwise it panics.
+pub fn create_ipp_srs<E: Engine>(p1: &TauPowers<E>, p2: &TauPowers<E>, n: usize) -> GenericSRS<E> {
+    let tn = 2 * n + 1; // size of the CRS we need
+    assert!(p1.tau_g1.len() >= tn && p1.tau_g2.len() >= tn);
+    assert!(p2.tau_g1.len() >= tn && p2.tau_g2.len() >= tn);
     // we make sure the two transcript use the same generators
     let b1 = p1.tau_g1[0] == p2.tau_g1[0];
     let b2 = p1.tau_g2[0] == p2.tau_g2[0];
     if !b1 || !b2 {
         panic!("the two transcript don't use the same bases");
     }
-    let g_alpha_powers = p1.tau_g1.iter().skip(n).take(n+1).collect::<Vec<_>>();
-    let g_beta_powers = p2.tau_g1.iter().skip(n).take(n+1).collect::<Vec<_>>();
-    let h_alpha_powers = p1.tau_g2.iter().take(n+1).collect::<Vec<_>>();
-    let h_beta_powers = p2.tau_g2.iter().take(n+1).collect::<Vec<_>>();
-    let srs = SRS<E> {
-        n:n,
+    let g_alpha_powers = p1.tau_g1.iter().take(tn).collect::<Vec<_>>();
+    let g_beta_powers = p2.tau_g1.iter().take(tn).collect::<Vec<_>>();
+    let h_alpha_powers = p1.tau_g2.iter().take(tn).collect::<Vec<_>>();
+    let h_beta_powers = p2.tau_g2.iter().take(tn).collect::<Vec<_>>();
+    GenericSRS::<E> {
         g_alpha_powers,
-        h_alpha_powers,
         g_beta_powers,
+        h_alpha_powers,
         h_beta_powers,
     }
-    let vk = VerifierSRS<E> {
-        n:n,
-        g:p1.tau_g1[0].clone(),
-        h:p1.tau_g2[0].clone(),
-        g_alpha:p1.tau_g1[1].clone(),
-        g_beta:p2.tau_g1[1].clone(),
-        h_alpha:p1.tau_g2[1].clone(),
-        h_beta:p2.tau_g2[1].clone(),
-        g_alpha_n1: srs.g_alpha_powers[1].clone(),
-        g_beta_n1: srs.g_beta_powers[1].clone(),
-    }
-    (srs,vk)
 }

@@ -10,7 +10,9 @@ use std::io::{self, BufReader, Error, Read};
 /// An URI can designate multiple ways to fetch a power of tau ceremony
 #[derive(Clone, Debug)]
 pub enum URI {
+    /// A local filesystem path
     File(String),
+    /// A HTTP endpoint which returns the transcript in the body's answer.
     HTTP(String),
 }
 
