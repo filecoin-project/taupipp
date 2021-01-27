@@ -21,6 +21,7 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 [[package]]
 name = "bellperson"
 version = "0.12.2"
+source = "git+https://github.com/filecoin-project/bellperson?branch=feat-ipp2#b2d3e4ef9cf2c15a3a7f796773958b82cb5234e9"
 dependencies = [
  "bincode",
  "bit-vec",

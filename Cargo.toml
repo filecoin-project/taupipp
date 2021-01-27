@@ -7,7 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bellman = { path="../bellperson", package = "bellperson" } 
+bellman = { git = "https://github.com/filecoin-project/bellperson", package = "bellperson", branch = "feat-ipp2" } 
 #zcash = { path="../zcashptau", package="powersoftau"}
 #paired = { version = "0.21.0"}
 groupy = "0.3.0"
