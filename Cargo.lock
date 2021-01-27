@@ -662,6 +662,7 @@ dependencies = [
  "groupy",
  "hkdf",
  "rand_core",
+ "serde",
 ]
 
 [[package]]
