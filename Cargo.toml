@@ -9,10 +9,11 @@ edition = "2018"
 [dependencies]
 bellman = { path="../bellperson", package = "bellperson" } 
 #zcash = { path="../zcashptau", package="powersoftau"}
-paired = { version = "0.21.0"}
+#paired = { version = "0.21.0"}
 groupy = "0.3.0"
 rayon = "1.3.0"
 isahc = "1.0.3"
 
-[features]
-pairing-serde = ["paired/serde"]
+[dependencies.paired]
+version = "0.21.0"
+features = ["serde"]
