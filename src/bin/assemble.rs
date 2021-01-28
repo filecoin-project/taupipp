@@ -53,14 +53,6 @@ impl Config {
 
 fn main() {
     let (zcash, filecoin) = Config::get_defaults();
-    /////////////////// ZCASH ///////////////////////////////
-    println!(
-        "Reading zcash taus - look for default file '{}'.",
-        &zcash.file
-    );
-    let zcash_acc = fetch::read_powers_from::<Bls12>(&zcash.powers, zcash.get_uri())
-        .expect("failed to read zcash params");
-
     /////////////////// Filecoin ///////////////////////////////
     println!(
         "Reading filecoin taus - look for default file '{}'",
@@ -68,6 +60,14 @@ fn main() {
     );
     let filecoin_acc = fetch::read_powers_from::<Bls12>(&filecoin.powers, filecoin.get_uri())
         .expect("failed to read filecoin powers");
+
+    /////////////////// ZCASH ///////////////////////////////
+    println!(
+        "Reading zcash taus - look for default file '{}'.",
+        &zcash.file
+    );
+    let zcash_acc = fetch::read_powers_from::<Bls12>(&zcash.powers, zcash.get_uri())
+        .expect("failed to read zcash params");
 
     /////////////////// IPP  ///////////////////////////////
     println!("\nCombining both powers into one IPP SRS");

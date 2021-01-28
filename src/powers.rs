@@ -15,6 +15,7 @@ impl TauParams {
     /// new expects the number of multiplicative gates, or equivalently, the
     /// length of the G2 tau vector.
     pub fn new(tau_length: usize, take: usize) -> TauParams {
+        assert!(take <= tau_length);
         TauParams {
             g2_length: tau_length,
             // More tau powers are needed in G1 because the Groth16 H query

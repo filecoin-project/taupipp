@@ -55,10 +55,14 @@ fn read_vec<R: Read + Send, C: PairingCurveAffine>(
         },
         || {
             res.into_par_iter()
-                .map(|source| {
+                .enumerate()
+                .map(|(i, source)| {
                     source
                         .into_affine()
-                        .map_err(|e| e.into())
+                        .map_err(|e| {
+                            println!("Error at index {}", i);
+                            e.into()
+                        })
                         .and_then(|source| Ok(source))
                 })
                 .collect::<Result<Vec<_>, DeserializationError>>()
