@@ -58,7 +58,8 @@ fn read_vec<R: Read + Send, C: EncodedPoint>(
             }
         },
         || {
-            res.into_par_iter()
+            let r = res
+                .into_par_iter()
                 .enumerate()
                 .map(|(i, source)| {
                     source
@@ -69,7 +70,9 @@ fn read_vec<R: Read + Send, C: EncodedPoint>(
                         })
                         .and_then(|source| Ok(source))
                 })
-                .collect::<Result<Vec<_>, DeserializationError>>()
+                .collect::<Result<Vec<_>, DeserializationError>>();
+            println!("finished processing all points into affine coordinates");
+            r
         },
     );
     res_affine
