@@ -7,12 +7,14 @@ use sha2::Sha256;
 pub struct TauParams {
     pub g1_length: usize,
     pub g2_length: usize,
+    /// the number of powers that you take from the g1 and g2 vectors
+    pub take: usize,
 }
 
 impl TauParams {
     /// new expects the number of multiplicative gates, or equivalently, the
     /// length of the G2 tau vector.
-    pub fn new(tau_length: usize) -> TauParams {
+    pub fn new(tau_length: usize, take: usize) -> TauParams {
         TauParams {
             g2_length: tau_length,
             // More tau powers are needed in G1 because the Groth16 H query
@@ -20,6 +22,7 @@ impl TauParams {
             // where the largest i = m - 2, requiring the computation of tau^(2m - 2)
             // and thus giving us a vector length of 2^22 - 1.
             g1_length: (tau_length << 1) - 1,
+            take,
         }
     }
 }
@@ -49,16 +52,20 @@ impl<E: Engine> TauPowers<E> {
 /// together. The generic srs will be able to aggregate up to $n$ proofs. $n$
 /// must be smaller than half of the size of both CRS otherwise it panics. Both
 /// CRS must use the same generators in G1 and G2 otherwise it panics.
-pub fn create_ipp_srs<E: Engine>(p1: &TauPowers<E>, p2: &TauPowers<E>, n: usize) -> GenericSRS<E> {
-    let tn = 2 * n + 1; // size of the CRS we need
-    assert!(p1.tau_g1.len() >= tn && p1.tau_g2.len() >= tn);
-    assert!(p2.tau_g1.len() >= tn && p2.tau_g2.len() >= tn);
+pub fn create_ipp_srs<E: Engine>(p1: &TauPowers<E>, p2: &TauPowers<E>) -> GenericSRS<E> {
+    // check correct sizes of both crs
+    assert!(p1.tau_g1.len() == p1.tau_g2.len());
+    assert!(p1.tau_g1.len() == p2.tau_g1.len());
+    assert!(p1.tau_g2.len() == p2.tau_g2.len());
     // we make sure the two transcript use the same generators
     let b1 = p1.tau_g1[0] == p2.tau_g1[0];
     let b2 = p1.tau_g2[0] == p2.tau_g2[0];
     if !b1 || !b2 {
         panic!("the two transcript don't use the same bases");
     }
+    // size of the CRS we need
+    let tn = 2 * p1.tau_g1.len() + 1;
+
     let g_alpha_powers = p1.tau_g1.iter().take(tn).cloned().collect::<Vec<_>>();
     let g_beta_powers = p2.tau_g1.iter().take(tn).cloned().collect::<Vec<_>>();
     let h_alpha_powers = p1.tau_g2.iter().take(tn).cloned().collect::<Vec<_>>();

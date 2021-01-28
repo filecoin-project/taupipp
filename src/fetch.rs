@@ -105,8 +105,8 @@ fn read_powers<E: Engine, R: Read>(
     reader: &mut R,
 ) -> Result<TauPowers<E>, DeserializationError> {
     skip_hash(reader);
-    let g1p = read_vec::<_, E::G1Affine>(reader, params.g1_length, 20)?;
-    let g2p = read_vec::<_, E::G2Affine>(reader, params.g2_length, 20)?;
+    let g1p = read_vec::<_, E::G1Affine>(reader, params.g1_length, params.take)?;
+    let g2p = read_vec::<_, E::G2Affine>(reader, params.g2_length, params.take)?;
     Ok(TauPowers {
         tau_g1: g1p,
         tau_g2: g2p,
