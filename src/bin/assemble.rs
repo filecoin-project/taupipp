@@ -19,16 +19,19 @@ struct Config {
     http: String,
 }
 
+const COMPRESSED: bool = true;
+const UNCOMPRESSED: bool = false;
+
 impl Config {
     /// returns the config we wish to download, in this case zcash and filecoin one.
     fn get_defaults() -> (Config, Config) {
         (Config{
-            powers: powers::TauParams::new(1 << 21,TAU_LENGTH),
+            powers: powers::TauParams::new(1 << 21,TAU_LENGTH,COMPRESSED),
             file: "zcash_powers".to_string(),
             // taken from https://github.com/ZcashFoundation/powersoftau-attestations/tree/master/0088
             http: "https://powersoftau-transcript.s3-us-west-2.amazonaws.com/88dc1dc6914e44568e8511eace177e6ecd9da9a9bd8f67e4c0c9f215b517db4d1d54a755d051978dbb85ef947918193c93cd4cf4c99c0dc5a767d4eeb10047a4".to_string(), 
         }, Config {
-            powers: powers::TauParams::new(1 << 27,TAU_LENGTH),
+            powers: powers::TauParams::new(1 << 27,TAU_LENGTH,UNCOMPRESSED),
             file: "filecoin_powers".to_string(),
             // IPFS gateway issue ?
             //http: "https://trusted-setup.filecoin.io/phase1/challenge_19".to_string(),

@@ -9,14 +9,16 @@ pub struct TauParams {
     pub g2_length: usize,
     /// the number of powers that you take from the g1 and g2 vectors
     pub take: usize,
+    pub compressed: bool,
 }
 
 impl TauParams {
     /// new expects the number of multiplicative gates, or equivalently, the
     /// length of the G2 tau vector.
-    pub fn new(tau_length: usize, take: usize) -> TauParams {
+    pub fn new(tau_length: usize, take: usize, compressed: bool) -> TauParams {
         assert!(take <= tau_length);
         TauParams {
+            compressed,
             g2_length: tau_length,
             // More tau powers are needed in G1 because the Groth16 H query
             // includes terms of the form tau^i * (tau^m - 1) = tau^(i+m) - tau^i

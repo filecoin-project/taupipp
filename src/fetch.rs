@@ -1,6 +1,6 @@
 use crate::powers::{TauParams, TauPowers};
-use groupy::EncodedPoint;
-use paired::{Engine, PairingCurveAffine};
+use groupy::{CurveAffine, EncodedPoint};
+use paired::Engine;
 use rayon::prelude::*;
 use std::fmt;
 use std::fs::OpenOptions;
@@ -32,21 +32,21 @@ pub fn read_powers_from<E: Engine>(
 /// read_vec reads up to size * point_length bytes from the reader and only
 /// verifies and returns "take" points - useful to advance the reader to a
 /// certain point without verifying everything if one does not need the full CRS.
-fn read_vec<R: Read + Send, C: PairingCurveAffine>(
+fn read_vec<R: Read + Send, C: EncodedPoint>(
     reader: &mut R,
     size: usize, // read this number of points from the reader
     take: usize, // only verify and take this number of points
-) -> Result<Vec<C>, DeserializationError> {
+) -> Result<Vec<C::Affine>, DeserializationError> {
     assert!(take <= size);
     // Read the encoded elements
-    let mut res = vec![C::Compressed::empty(); take];
+    let mut res = vec![C::empty(); take];
     for encoded in &mut res {
         reader.read_exact(encoded.as_mut())?;
     }
     let (_, res_affine) = rayon::join(
         || {
             // read the rest that we wish to skip
-            let mut empty = C::Compressed::empty();
+            let mut empty = C::empty();
             for _ in 0..(size - take) {
                 reader
                     .read_exact(empty.as_mut())
@@ -110,8 +110,32 @@ fn read_powers<E: Engine, R: Read + Send>(
     reader: &mut R,
 ) -> Result<TauPowers<E>, DeserializationError> {
     skip_hash(reader);
-    let g1p = read_vec::<_, E::G1Affine>(reader, params.g1_length, params.take)?;
-    let g2p = read_vec::<_, E::G2Affine>(reader, params.g2_length, params.take)?;
+    let g1p = if params.compressed {
+        read_vec::<_, <E::G1Affine as CurveAffine>::Compressed>(
+            reader,
+            params.g1_length,
+            params.take,
+        )?
+    } else {
+        read_vec::<_, <E::G1Affine as CurveAffine>::Uncompressed>(
+            reader,
+            params.g1_length,
+            params.take,
+        )?
+    };
+    let g2p = if params.compressed {
+        read_vec::<_, <E::G2Affine as CurveAffine>::Compressed>(
+            reader,
+            params.g2_length,
+            params.take,
+        )?
+    } else {
+        read_vec::<_, <E::G2Affine as CurveAffine>::Uncompressed>(
+            reader,
+            params.g2_length,
+            params.take,
+        )?
+    };
     Ok(TauPowers {
         tau_g1: g1p,
         tau_g2: g2p,
