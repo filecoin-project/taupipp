@@ -1,5 +1,7 @@
 use bellman::groth16::aggregate::GenericSRS;
+use digest::Digest;
 use paired::Engine;
+use sha2::Sha256;
 
 /// TauParams contains the size of the vector of the tau^i vector in g1 and g2
 pub struct TauParams {
@@ -27,6 +29,20 @@ impl TauParams {
 pub struct TauPowers<E: Engine> {
     pub tau_g1: Vec<E::G1Affine>,
     pub tau_g2: Vec<E::G2Affine>,
+}
+
+impl<E: Engine> TauPowers<E> {
+    pub fn hash(&self) -> Vec<u8> {
+        let mut hash_input = Vec::new();
+        self.tau_g1
+            .iter()
+            .zip(self.tau_g2.iter())
+            .for_each(|(g1, g2)| {
+                bincode::serialize_into(&mut hash_input, g1).expect("hash point error");
+                bincode::serialize_into(&mut hash_input, g2).expect("hash point error");
+            });
+        Sha256::digest(&hash_input).to_vec()
+    }
 }
 
 /// this function returns the generic srs required to aggregate Groth16 proofs

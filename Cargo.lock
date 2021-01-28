@@ -21,7 +21,7 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 [[package]]
 name = "bellperson"
 version = "0.12.3"
-source = "git+https://github.com/filecoin-project/bellperson?branch=feat-ipp2#eab4eba92c5db02f5616b88180c7b78303da1532"
+source = "git+https://github.com/filecoin-project/bellperson?branch=feat-ipp2#022238d61af18d471b28d7111f92bd410ce07a5d"
 dependencies = [
  "bincode",
  "bit-vec",
@@ -509,9 +509,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.82"
+version = "0.2.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89203f3fba0a3795506acaad8ebce3c80c0af93f994d5a1d7a0b1eeb23271929"
+checksum = "7eb0c4e9c72ee9d69b767adebc5f4788462a3b45624acd919475c92597bcaf4f"
 
 [[package]]
 name = "libnghttp2-sys"
@@ -1011,10 +1011,13 @@ name = "taupipp"
 version = "0.1.0"
 dependencies = [
  "bellperson",
+ "bincode",
+ "digest",
  "groupy",
  "isahc",
  "paired",
  "rayon",
+ "sha2",
 ]
 
 [[package]]

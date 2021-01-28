@@ -20,12 +20,12 @@ pub enum URI {
 /// Note it fetches and reads only the first tau^i in G1 and G2 groups of the
 /// full transcript as only this part is needed for IPP.
 pub fn read_powers_from<E: Engine>(
-    params: TauParams,
+    params: &TauParams,
     uri: URI,
 ) -> Result<TauPowers<E>, DeserializationError> {
     match uri {
-        URI::File(a) => read_powers_from_file(params, &a),
-        URI::HTTP(a) => read_powers_from_url(params, &a),
+        URI::File(a) => read_powers_from_file(&params, &a),
+        URI::HTTP(a) => read_powers_from_url(&params, &a),
     }
 }
 
@@ -76,32 +76,32 @@ fn skip_hash<R: Read>(r: &mut R) {
 
 /// read the powers from the given file using the given parameters.
 fn read_powers_from_file<E: Engine>(
-    params: TauParams,
+    params: &TauParams,
     fname: &str,
 ) -> Result<TauPowers<E>, DeserializationError> {
     let mut reader = OpenOptions::new()
         .read(true)
         .open(fname)
         .expect(&format!("unable open {} in this directory", fname));
-    read_powers(params, &mut reader)
+    read_powers(&params, &mut reader)
 }
 
 /// read the powers from the given URL using the given parameters. Currently, it
 /// fetches first all then process the points. TODO fetch and process in
 /// parallel.
 fn read_powers_from_url<E: Engine>(
-    params: TauParams,
+    params: &TauParams,
     url: &str,
 ) -> Result<TauPowers<E>, DeserializationError> {
     let resp = isahc::get(url)?;
     let mut body = resp.into_body();
-    read_powers(params, &mut body)
+    read_powers(&params, &mut body)
 }
 
 /// read_powers reads only the first tau^i in G1 and G2 groups of the full
 /// transcript as only this part is needed for IPP.
 fn read_powers<E: Engine, R: Read>(
-    params: TauParams,
+    params: &TauParams,
     reader: &mut R,
 ) -> Result<TauPowers<E>, DeserializationError> {
     skip_hash(reader);
