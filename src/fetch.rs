@@ -32,7 +32,7 @@ pub fn read_powers_from<E: Engine>(
 /// read_vec reads up to size * point_length bytes from the reader and only
 /// verifies and returns "take" points - useful to advance the reader to a
 /// certain point without verifying everything if one does not need the full CRS.
-fn read_vec<R: Read, C: PairingCurveAffine>(
+fn read_vec<R: Read + Send, C: PairingCurveAffine>(
     reader: &mut R,
     size: usize, // read this number of points from the reader
     take: usize, // only verify and take this number of points
@@ -43,27 +43,28 @@ fn read_vec<R: Read, C: PairingCurveAffine>(
     for encoded in &mut res {
         reader.read_exact(encoded.as_mut())?;
     }
-    // read the rest that we wish to skip
-    let mut empty = C::Compressed::empty();
-    for _ in 0..(size - take) {
-        reader.read_exact(empty.as_mut())?;
-    }
-    let res_affine = res
-        .into_par_iter()
-        .map(|source| {
-            source
-                .into_affine()
-                .map_err(|e| e.into())
-                .and_then(|source| {
-                    if source.is_zero() {
-                        Err(DeserializationError::PointAtInfinity)
-                    } else {
-                        Ok(source)
-                    }
+    let (_, res_affine) = rayon::join(
+        || {
+            // read the rest that we wish to skip
+            let mut empty = C::Compressed::empty();
+            for _ in 0..(size - take) {
+                reader
+                    .read_exact(empty.as_mut())
+                    .expect("failed to read from input");
+            }
+        },
+        || {
+            res.into_par_iter()
+                .map(|source| {
+                    source
+                        .into_affine()
+                        .map_err(|e| e.into())
+                        .and_then(|source| Ok(source))
                 })
-        })
-        .collect::<Result<Vec<_>, DeserializationError>>()?;
-    Ok(res_affine)
+                .collect::<Result<Vec<_>, DeserializationError>>()
+        },
+    );
+    res_affine
 }
 
 /// read some bytes representing the hash - we are not verifying the hash chain
@@ -100,7 +101,7 @@ fn read_powers_from_url<E: Engine>(
 
 /// read_powers reads only the first tau^i in G1 and G2 groups of the full
 /// transcript as only this part is needed for IPP.
-fn read_powers<E: Engine, R: Read>(
+fn read_powers<E: Engine, R: Read + Send>(
     params: &TauParams,
     reader: &mut R,
 ) -> Result<TauPowers<E>, DeserializationError> {
