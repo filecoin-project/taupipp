@@ -43,6 +43,10 @@ fn read_vec<R: Read + Send, C: EncodedPoint>(
     for encoded in &mut res {
         reader.read_exact(encoded.as_mut())?;
     }
+    println!(
+        "{} points have been read from source - processing them now.",
+        take
+    );
     let (_, res_affine) = rayon::join(
         || {
             // read the rest that we wish to skip
