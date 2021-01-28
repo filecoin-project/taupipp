@@ -75,7 +75,7 @@ fn main() {
     println!("\n\nYou can find below the hashes of the powers used from both sides\nand the hash of the resulting SRS:\n");
     println!("\t- ZCASH HASH   : {:x?}", &zcash_acc.hash());
     println!("\t- FILECOIN HASH: {:x?}", &filecoin_acc.hash());
-    println!("\t- IPP SRS HASH: {:x?}\n", &ipp_srs.hash());
+    println!("\t- IPP SRS HASH : {:x?}\n", &ipp_srs.hash());
 
     println!("Done!");
 }
