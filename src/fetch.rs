@@ -5,6 +5,7 @@ use rayon::prelude::*;
 use std::fmt;
 use std::fs::OpenOptions;
 use std::io::{self, Read};
+use std::path::Path;
 
 /// An URI can designate multiple ways to fetch a power of tau ceremony
 #[derive(Clone, Debug)]
@@ -15,6 +16,43 @@ pub enum URI {
     HTTP(String),
 }
 
+impl URI {
+    /// Returns an URI that represents the file if it exists or the http
+    /// endpoint otherwise.
+    pub fn try_from_file(fname: &str, http: &str) -> Self {
+        if Path::new(&fname).exists() {
+            URI::File(fname.to_string())
+        } else {
+            URI::HTTP(http.to_string())
+        }
+    }
+
+    pub fn get_reader(&self) -> Box<dyn Read + Send> {
+        match self {
+            Self::File(fname) => Box::new(
+                OpenOptions::new()
+                    .read(true)
+                    .open(fname)
+                    .expect(&format!("unable open {} in this directory", fname)),
+            ) as Box<dyn Read + Send>,
+            Self::HTTP(endpoint) => {
+                let resp =
+                    isahc::get(endpoint).expect(&format!("unable to open endpoint {}", endpoint));
+                Box::new(resp.into_body()) as Box<dyn Read + Send>
+            }
+        }
+    }
+}
+
+impl fmt::Display for URI {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            URI::File(fname) => write!(f, "file uri: {}", fname),
+            URI::HTTP(endpoint) => write!(f, "HTTP endpoint uri: {}", endpoint),
+        }
+    }
+}
+
 /// This functions fetches the power of tau transcript using the corresponding
 /// method of the URI and returns the tau powers.
 /// Note it fetches and reads only the first tau^i in G1 and G2 groups of the
@@ -23,10 +61,8 @@ pub fn read_powers_from<E: Engine>(
     params: &TauParams,
     uri: URI,
 ) -> Result<TauPowers<E>, DeserializationError> {
-    match uri {
-        URI::File(a) => read_powers_from_file(&params, &a),
-        URI::HTTP(a) => read_powers_from_url(&params, &a),
-    }
+    let mut reader = uri.get_reader();
+    read_powers(&params, &mut reader)
 }
 
 /// read_vec reads up to size * point_length bytes from the reader and only
@@ -44,7 +80,7 @@ fn read_vec<R: Read + Send, C: EncodedPoint>(
         reader.read_exact(encoded.as_mut())?;
     }
     println!(
-        "{} points have been read from source - processing them now.",
+        "\t- {} points have been read from source - processing them now.",
         take
     );
     let (_, res_affine) = rayon::join(
@@ -71,7 +107,7 @@ fn read_vec<R: Read + Send, C: EncodedPoint>(
                         .and_then(|source| Ok(source))
                 })
                 .collect::<Result<Vec<_>, DeserializationError>>();
-            println!("finished processing all points into affine coordinates");
+            println!("\t- Finished processing all points into affine coordinates");
             r
         },
     );
@@ -86,30 +122,6 @@ fn skip_hash<R: Read>(r: &mut R) {
         .expect("unable to read BLAKE2b hash of previous contribution");
 }
 
-/// read the powers from the given file using the given parameters.
-fn read_powers_from_file<E: Engine>(
-    params: &TauParams,
-    fname: &str,
-) -> Result<TauPowers<E>, DeserializationError> {
-    let mut reader = OpenOptions::new()
-        .read(true)
-        .open(fname)
-        .expect(&format!("unable open {} in this directory", fname));
-    read_powers(&params, &mut reader)
-}
-
-/// read the powers from the given URL using the given parameters. Currently, it
-/// fetches first all then process the points. TODO fetch and process in
-/// parallel.
-fn read_powers_from_url<E: Engine>(
-    params: &TauParams,
-    url: &str,
-) -> Result<TauPowers<E>, DeserializationError> {
-    let resp = isahc::get(url)?;
-    let mut body = resp.into_body();
-    read_powers(&params, &mut body)
-}
-
 /// read_powers reads only the first tau^i in G1 and G2 groups of the full
 /// transcript as only this part is needed for IPP.
 fn read_powers<E: Engine, R: Read + Send>(
@@ -117,6 +129,7 @@ fn read_powers<E: Engine, R: Read + Send>(
     reader: &mut R,
 ) -> Result<TauPowers<E>, DeserializationError> {
     skip_hash(reader);
+    println!("\t- Processing g1 tau elements");
     let g1p = if params.compressed {
         read_vec::<_, <E::G1Affine as CurveAffine>::Compressed>(
             reader,
@@ -130,6 +143,7 @@ fn read_powers<E: Engine, R: Read + Send>(
             params.take,
         )?
     };
+    println!("\t- Processing g2 tau elements");
     let g2p = if params.compressed {
         read_vec::<_, <E::G2Affine as CurveAffine>::Compressed>(
             reader,

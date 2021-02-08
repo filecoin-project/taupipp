@@ -13,6 +13,7 @@ paired = { version = "0.21.0" }
 sha2 = "0.9"
 digest = "0.9.0"
 bincode = "1.3.1"
+hex = "0.4.2"
 
 [patch.crates-io]
 fff = { git = "https://github.com/filecoin-project/ff", branch = "ser-de" }

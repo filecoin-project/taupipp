@@ -41,16 +41,15 @@ impl Config {
 
     /// looks if the file is present, otherwise returns the download URL
     fn get_uri(&self) -> fetch::URI {
-        if Path::new(&self.file).exists() {
-            println!("Path {} found - using file to combine", &self.file);
-            fetch::URI::File(self.file.clone())
-        } else {
-            println!(
+        let uri = try_from_file(&self.file, &self.http);
+        match uri {
+            URI::File(_) => println!("Path {} found - using file to combine", &self.file),
+            URI::HTTP(_) => println!(
                 "Path {} not found - using http endpoint to download: {}",
                 &self.file, &self.http
-            );
-            fetch::URI::HTTP(self.http.clone())
-        }
+            ),
+        };
+        uri
     }
 }
 
@@ -81,9 +80,9 @@ fn main() {
     ipp_srs.write(&mut file).expect("failed to write the srs");
 
     println!("\n\nYou can find below the hashes of the powers used from both sides\nand the hash of the resulting SRS:\n");
-    println!("\t- ZCASH HASH   : {:x?}", &zcash_acc.hash());
-    println!("\t- FILECOIN HASH: {:x?}", &filecoin_acc.hash());
-    println!("\t- IPP SRS HASH : {:x?}\n", &ipp_srs.hash());
+    println!("\t- ZCASH HASH   : {:x?}", hex::encode(zcash_acc.hash()));
+    println!("\t- FILECOIN HASH: {:x?}", hex::encode(filecoin_acc.hash()));
+    println!("\t- IPP SRS HASH : {:x?}\n", hex::encode(ipp_srs.hash()));
 
     println!("Done!");
 }
