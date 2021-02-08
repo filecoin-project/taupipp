@@ -1,6 +1,5 @@
 use paired::bls12_381::Bls12;
-use std::path::Path;
-use taupipp::fetch;
+use taupipp::fetch::{self, URI};
 use taupipp::powers;
 
 // 1 << 19 because we need powers up to 2n **included**, but powers of tau
@@ -41,7 +40,7 @@ impl Config {
 
     /// looks if the file is present, otherwise returns the download URL
     fn get_uri(&self) -> fetch::URI {
-        let uri = try_from_file(&self.file, &self.http);
+        let uri = URI::try_from_file(&self.file, &self.http);
         match uri {
             URI::File(_) => println!("Path {} found - using file to combine", &self.file),
             URI::HTTP(_) => println!(
