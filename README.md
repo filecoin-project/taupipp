@@ -22,6 +22,7 @@ h,h^beta, h^(beta^2), ... in G2
 
 By default, this tool will download (or read on file) Filecoin and Zcash's last
 power of tau partcipation and returns the combination of the two.
+**Note**: Groth16 CRS is more complex than shown here, this tool discard all the other components of the CRS and only concerns itself with the secret exponents bases.
 
 ## Aggregate
 
